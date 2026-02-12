@@ -1,4 +1,4 @@
-name: Build Windows Exe
+name: Build Windows Installer
 
 on:
   push:
@@ -10,44 +10,49 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    # 1. Récupération du code
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Set up JDK 17
+    # 2. Installation de Java 21
+    - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
-        cache: maven
+        cache: 'maven'
 
-    - name: Install WiX Toolset
-      run: dotnet tool install --global wix
+    # 3. Compilation de TOUT le projet (pour inclure stm-common)
+    - name: Build with Maven
+      run: mvn clean install -DskipTests
 
-    # Build MULTI-MODULE depuis la racine
-    - name: Build All Modules
-      run: mvn clean package -DskipTests
-
-    - name: Create EXE with jpackage
+    # 4. Création de l'EXE avec JPackage
+    - name: Create Installer with JPackage
       run: |
-        mkdir app-input
+        # On se déplace dans le dossier stm-client
+        cd stm-client
         
-        # Le JAR client contient désormais tout grâce au Shade Plugin
-        copy stm-client\target\stm-client-1.0.0.jar app-input\
-
-        # IMPORTANT: Utilisation de Launcher comme main-class
-        jpackage --input app-input `
-          --dest dist `
-          --name "SmartTaskAI" `
-          --main-jar stm-client-1.0.0.jar `
-          --main-class com.smarttask.client.Launcher `
+        # On identifie le fichier JAR généré
+        $JAR_FILE = "stm-client-1.0.0.jar"
+        
+        echo "Création de l'installable pour $JAR_FILE..."
+        
+        # Commande JPackage
+        jpackage `
           --type exe `
-          --app-version 1.0.0 `
-          --vendor "Yazid Essoktani" `
+          --input target `
+          --name "SmartTaskManager" `
+          --main-jar $JAR_FILE `
+          --main-class com.smarttask.client.Launcher `
           --win-dir-chooser `
           --win-menu `
-          --win-shortcut
+          --win-shortcut `
+          --app-version "1.0.0" `
+          --dest installer
 
-    - name: Upload EXE Artifact
+    # 5. Téléchargement du résultat (Artifact)
+    - name: Upload Installer
       uses: actions/upload-artifact@v4
       with:
-        name: SmartTaskAI-Windows-Installer
-        path: dist/*.exe
+        name: SmartTaskManager-Setup
+        path: stm-client/installer/*.exe
