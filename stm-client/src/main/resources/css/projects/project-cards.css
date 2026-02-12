@@ -1,0 +1,69 @@
+/* ================================
+   PROJECT TABLE
+   ================================ */
+
+.projects-table {
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+/* Header row */
+
+.project-table-header {
+    -fx-background-color: #f9fafb;
+    -fx-padding: 12 16;
+    -fx-border-color: transparent transparent #e5e7eb transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.project-header-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 12px;
+}
+
+/* Data rows */
+
+.project-row {
+    -fx-padding: 12 16;
+    -fx-border-color: transparent transparent #f3f4f6 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-color: #ffffff;
+}
+
+.project-row:hover {
+    -fx-background-color: #f9fafb;
+}
+
+.project-row-selected {
+    -fx-background-color: #eef2ff;
+}
+
+/* Columns */
+
+.project-name {
+    -fx-font-weight: 600;
+    -fx-text-fill: #111827;
+}
+
+.project-description {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 12px;
+}
+
+/* Actions */
+
+.project-actions .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #4f46e5;
+    -fx-font-size: 12px;
+}
+
+.project-actions .button:hover {
+    -fx-background-color: #eef2ff;
+    -fx-background-radius: 6;
+}
