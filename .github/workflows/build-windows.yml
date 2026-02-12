@@ -22,8 +22,7 @@ jobs:
     - name: Install WiX Toolset
       run: dotnet tool install --global wix
 
-    # ✅ CORRECTION ICI : On build tout le projet depuis la racine
-    # Cela va compiler stm-common ET stm-client dans le bon ordre
+    # Build MULTI-MODULE depuis la racine
     - name: Build All Modules
       run: mvn clean package -DskipTests
 
@@ -31,14 +30,15 @@ jobs:
       run: |
         mkdir app-input
         
-        # Le JAR est maintenant dans le dossier target du sous-module stm-client
+        # Le JAR client contient désormais tout grâce au Shade Plugin
         copy stm-client\target\stm-client-1.0.0.jar app-input\
 
+        # IMPORTANT: Utilisation de Launcher comme main-class
         jpackage --input app-input `
           --dest dist `
           --name "SmartTaskAI" `
           --main-jar stm-client-1.0.0.jar `
-          --main-class com.smarttask.client.App `
+          --main-class com.smarttask.client.Launcher `
           --type exe `
           --app-version 1.0.0 `
           --vendor "Yazid Essoktani" `
