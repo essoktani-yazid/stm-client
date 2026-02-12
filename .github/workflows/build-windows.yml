@@ -2,15 +2,18 @@ name: Build Windows Exe
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest  # C'est ici la magie : on utilise un serveur Windows
+    runs-on: windows-latest
 
     steps:
+    # 1. Récupération du code
     - uses: actions/checkout@v4
 
+    # 2. Configuration de Java 17
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -18,32 +21,43 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    # 3. Installation de WiX Toolset (Requis pour faire un .exe)
     - name: Install WiX Toolset
       run: dotnet tool install --global wix
 
+    # 4. Compilation du projet (Création du Fat JAR)
+    # On utilise simplement 'clean package' car le pom.xml est maintenant autonome à la racine
     - name: Build Fat JAR with Maven
-      run: mvn clean package -pl stm-client -am
-      # Assurez-vous que votre pom.xml a bien le maven-shade-plugin configuré !
+      run: mvn clean package
 
+    # 5. Création de l'installateur Windows (.exe)
     - name: Create EXE with jpackage
       run: |
-        # On se place dans le dossier target du module
-        cd stm-client/target
+        # Création d'un dossier propre pour l'entrée de jpackage
+        mkdir app-input
         
-        # Commande jpackage (adaptée pour PowerShell Windows)
-        jpackage --input . `
+        # Copie du Fat JAR généré vers ce dossier
+        # Assurez-vous que le nom correspond à celui dans votre pom.xml <artifactId>-<version>.jar
+        copy target\stm-client-1.0.0.jar app-input\
+
+        # Exécution de jpackage
+        # Note : Si vous n'avez pas encore ajouté de fichier "icon.ico" à la racine, supprimez la ligne --icon
+        jpackage --input app-input `
+          --dest dist `
           --name "SmartTaskAI" `
           --main-jar stm-client-1.0.0.jar `
           --main-class com.smarttask.client.App `
           --type exe `
           --app-version 1.0.0 `
           --vendor "Yazid Essoktani" `
+          --icon src/main/resources/images/team.ico `
           --win-dir-chooser `
           --win-menu `
           --win-shortcut
 
+    # 6. Sauvegarde du fichier .exe généré pour le téléchargement
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4
       with:
         name: SmartTaskAI-Windows-Installer
-        path: stm-client/target/*.exe
+        path: dist/*.exe
