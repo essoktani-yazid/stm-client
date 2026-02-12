@@ -1,0 +1,49 @@
+name: Build Windows Exe
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest  # C'est ici la magie : on utilise un serveur Windows
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Install WiX Toolset
+      run: dotnet tool install --global wix
+
+    - name: Build Fat JAR with Maven
+      run: mvn clean package -pl stm-client -am
+      # Assurez-vous que votre pom.xml a bien le maven-shade-plugin configuré !
+
+    - name: Create EXE with jpackage
+      run: |
+        # On se place dans le dossier target du module
+        cd stm-client/target
+        
+        # Commande jpackage (adaptée pour PowerShell Windows)
+        jpackage --input . `
+          --name "SmartTaskAI" `
+          --main-jar stm-client-1.0.0.jar `
+          --main-class com.smarttask.client.App `
+          --type exe `
+          --app-version 1.0.0 `
+          --vendor "Yazid Essoktani" `
+          --win-dir-chooser `
+          --win-menu `
+          --win-shortcut
+
+    - name: Upload EXE Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: SmartTaskAI-Windows-Installer
+        path: stm-client/target/*.exe

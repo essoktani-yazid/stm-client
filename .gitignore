@@ -1,0 +1,9 @@
+# Fichiers de compilation Maven
+target/
+*.class
+*.log
+
+# Secrets Google et Tokens (NE JAMAIS COMMITER)
+src/main/resources/credentials.json
+credentials.json
+tokens/
